@@ -1,5 +1,5 @@
 create database real_estate_db;
-
+								
 create table cities(
 	`id` integer primary key,
     `name` varchar(60) unique not null
