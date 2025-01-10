@@ -1,64 +1,64 @@
 create database real_estate_db;
-								
+
 create table cities(
-	`id` integer primary key,
-    `name` varchar(60) unique not null
+`id` integer primary key,
+`name` varchar(60) unique not null
 );
 
 create table property_types(
-	`id` integer primary key,
-    `type` varchar(40) unique not null,
-    `description` text
+`id` integer primary key,
+`type` varchar(40) unique not null,
+`description` text
 );
 
 create table properties(
-	`id` integer primary key,
-    address varchar(80) unique not null,
-    price decimal(19,2) not null,
-    area decimal(19,2),
-    property_type_id integer not null,
-    city_id integer not null,
-    constraint property_type_fk foreign key (property_type_id) references property_types(`id`),
-	constraint city_fk foreign key (city_id) references cities(`id`)
+`id` integer primary key,
+address varchar(80) unique not null,
+price decimal(19,2) not null,
+area decimal(19,2),
+property_type_id integer not null,
+city_id integer not null,
+constraint property_type_fk foreign key (property_type_id) references property_types(`id`),
+constraint city_fk foreign key (city_id) references cities(`id`)
 );
 
 create table agents(
-	`id` integer primary key,
-    first_name varchar(40) not null,
-    last_name varchar(40) not null,
-    phone varchar(20) unique not null,
-    email varchar(50) unique not null,
-    city_id integer not null,
-    constraint city_agents_fk foreign key (city_id) references cities(`id`)
+`id` integer primary key,
+first_name varchar(40) not null,
+last_name varchar(40) not null,
+phone varchar(20) unique not null,
+email varchar(50) unique not null,
+city_id integer not null,
+constraint city_agents_fk foreign key (city_id) references cities(`id`)
 );
 
 create table buyers(
-	`id` integer primary key,
-    first_name varchar(40) not null,
-    last_name varchar(40) not null,
-    phone varchar(20) unique not null,
-    email varchar(50) unique not null,
-    city_id integer not null,
-    constraint city_buyer_fk foreign key (city_id) references cities(`id`)
+`id` integer primary key,
+first_name varchar(40) not null,
+last_name varchar(40) not null,
+phone varchar(20) unique not null,
+email varchar(50) unique not null,
+city_id integer not null,
+constraint city_buyer_fk foreign key (city_id) references cities(`id`)
 );
 
 create table property_offers(
-	property_id integer not null,
-    agent_id integer not null,
-    price decimal(19,2) not null,
-    offer_datetime datetime,
-    constraint property_offer_fk foreign key (property_id) references properties(`id`),
-    constraint agent_property_offer_fk foreign key (agent_id) references agents(`id`)
+property_id integer not null,
+agent_id integer not null,
+price decimal(19,2) not null,
+offer_datetime datetime,
+constraint property_offer_fk foreign key (property_id) references properties(`id`),
+constraint agent_property_offer_fk foreign key (agent_id) references agents(`id`)
 );
 
 create table property_transactions(
-	`id` integer primary key,
-    property_id integer not null,
-    buyer_id integer not null,
-    transaction_date date,
-    bank_name varchar(30),
-    iban varchar(40) unique not null,
-    is_successful char(1)
+`id` integer primary key,
+property_id integer not null,
+buyer_id integer not null,
+transaction_date date,
+bank_name varchar(30),
+iban varchar(40) unique not null,
+is_successful char(1)
 );
 
 INSERT INTO cities (`id`,name)
@@ -345,26 +345,26 @@ values (1, 14, 8, '2019-12-08', 'City Bank', 'BE7109612456769', 1),
        (40, 40, 24, '2020-11-02', 'Global Trust Bank', 'SE72000810340009783246', 1);
 
 start transaction;
-	select
-		p.id 
-	from properties as p
-    where p.price >= 800000;
-    
-    set sql_safe_updates = 0;
-    
-    update properties as p
-		set p.price = p.price - 50000
-	where p.price >= 800000;
-    
-    select * from properties;
+select
+	p.id 
+from properties as p
+where p.price >= 800000;
 
-	select 
-    count(p.id)
-    from property_transactions as p
-	where p.is_successful = 0;
-    
-    delete from property_transactions as p
-    where p.is_successful = 0;
+set sql_safe_updates = 0;
+
+update properties as p
+	set p.price = p.price - 50000
+where p.price >= 800000;
+
+select * from properties;
+
+select 
+count(p.id)
+from property_transactions as p
+where p.is_successful = 0;
+
+delete from property_transactions as p
+where p.is_successful = 0;
 commit;
 rollback;
 
@@ -382,30 +382,30 @@ limit 10;
     
     
 select
-	left(p.address,6) as "agent_name",
-    length(p.address) * 5430 as "price"
+left(p.address,6) as "agent_name",
+length(p.address) * 5430 as "price"
 from property_offers as po
 right join properties as p on p.id = po.property_id
 where po.agent_id is null
 order by left(p.address,6) desc,length(p.address) * 5430 desc;
     
 select 
-	p.bank_name,
-    count(p.iban) as count
+p.bank_name,
+count(p.iban) as count
 from property_transactions as p
 group by p.bank_name
 having count(p.iban) >= 9
 order by count(p.iban) desc,p.bank_name;
 
 select
-	p.address,
-    p.area,
-	case
-		when p.area <= 100 then 'small'
-        when p.area <= 200 then 'medium'
-        when p.area <= 500 then 'large'
-        when p.area > 500 then 'extra large'
-    end as 'size'
+p.address,
+p.area,
+case
+when p.area <= 100 then 'small'
+when p.area <= 200 then 'medium'
+when p.area <= 500 then 'large'
+when p.area > 500 then 'extra large'
+end as 'size'
 from properties as p
 order by p.area,p.address desc;
 
@@ -414,13 +414,14 @@ create function udf_offers_from_city_name(cityName varchar(50))
 returns int
 deterministic
 begin
-    return (
-        select count(*)
-        from property_offers as po
-        join properties as p on p.id = po.property_id
-        join cities as c on c.id = p.city_id
-        where c.name = cityName
-    );
+return (
+select count(*)
+from property_offers as po
+join properties as p on p.id = po.property_id
+join cities as c on c.id = p.city_id
+where c.name = cityName
+);
 end$$
 delimiter ;
 select udf_offers_from_city_name('Amsterdam') as "offers_count";
+
