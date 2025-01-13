@@ -196,3 +196,63 @@ FROM
     planets AS p ON p.id = sp.planet_id
 ORDER BY DATEDIFF(j.journey_end, j.journey_start)
 LIMIT 1;
+
+/*Get colonists count*/
+DELIMITER $$
+CREATE FUNCTION udf_count_colonists_by_destination_planet(planet_name VARCHAR(30))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE count INT;
+	SELECT 
+		COUNT(c.id)
+        INTO count
+    FROM travel_cards as tc
+    JOIN colonists as c on c.id = tc.colonist_id
+    JOIN journeys as j on j.id = tc.journey_id
+    JOIN spaceports as sp on sp.id = j.destination_spaceport_id
+    JOIN planets as p on p.id = sp.planet_id
+    WHERE p.`name` = planet_name;    
+    RETURN count;
+END$$
+DELIMITER ;
+
+SELECT p.`name`, udf_count_colonists_by_destination_planet('Otroyphus') AS `count`
+FROM planets AS p
+WHERE p.`name` = 'Otroyphus';
+
+/*Modify spaceship*/
+DELIMITER $$
+CREATE PROCEDURE udp_modify_spaceship_light_speed_rate(
+    IN spaceship_name VARCHAR(50),
+    IN light_speed_rate_increase INT
+)
+BEGIN
+    DECLARE spaceship_exists INT;
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Spaceship you are trying to modify does not exist.';
+    END;
+
+    START TRANSACTION;
+
+    SELECT COUNT(*)
+    INTO spaceship_exists
+    FROM spaceships
+    WHERE name = spaceship_name;
+
+    IF spaceship_exists = 0 THEN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Spaceship you are trying to modify does not exist.';
+    ELSE
+        UPDATE spaceships
+        SET light_speed_rate = light_speed_rate + light_speed_rate_increase
+        WHERE name = spaceship_name;
+
+        COMMIT;
+    END IF;
+END$$
+DELIMITER ;
