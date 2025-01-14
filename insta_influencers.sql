@@ -138,11 +138,11 @@ RETURNS INT
 DETERMINISTIC
 BEGIN
 	RETURN (SELECT
-				COUNT(*) AS "photosCount"
+			COUNT(*) AS "photosCount"
 			FROM users AS u
-            JOIN users_photos AS up ON up.user_id = u.id
-            JOIN photos AS p ON p.id = up.photo_id
-            WHERE u.username = username);
+	    JOIN users_photos AS up ON up.user_id = u.id
+	    JOIN photos AS p ON p.id = up.photo_id
+	    WHERE u.username = username);
 END$$
 DELIMITER ;
 
