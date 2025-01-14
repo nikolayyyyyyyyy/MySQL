@@ -120,3 +120,30 @@ FROM
     comments AS c ON c.photo_id = p.id
 GROUP BY p.id
 ORDER BY COUNT(DISTINCT (l.id)) DESC , COUNT(DISTINCT (c.id)) DESC , p.id;
+
+/*The photo on the tenth day of the month*/
+SELECT 
+    CONCAT(LEFT(p.`description`, 30), '...') AS 'summary',
+    p.`date`
+FROM
+    photos AS p
+WHERE
+    DAY(p.`date`) = 10
+ORDER BY p.`date` DESC;
+
+/*Get User's Photos Count*/
+DELIMITER $$
+CREATE FUNCTION udf_users_photos_count(username VARCHAR(30))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	RETURN (SELECT
+				COUNT(*) AS "photosCount"
+			FROM users AS u
+            JOIN users_photos AS up ON up.user_id = u.id
+            JOIN photos AS p ON p.id = up.photo_id
+            WHERE u.username = username);
+END$$
+DELIMITER ;
+
+SELECT udf_users_photos_count('ssantryd') AS photosCount;
