@@ -36,16 +36,4 @@ FROM
     books AS b
 WHERE
     b.title LIKE 'Harry Potter%'
-ORDER BY b.id;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ORDER BY b.id; 
